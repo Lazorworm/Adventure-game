@@ -1,24 +1,25 @@
-import { loadProfile } from "./Serialization.js";
+import {EVENTS, EVENT_NAMES, Option} from "./Events.js";
+import {loadProfile, profile} from "./Serialization.js";
+
 
 let menu_open = false;
 
-console.log("main.js loaded");
-
-loadProfile();
+await loadProfile();
 
 function toggleMenu() {
-    const game_picture = document.getElementById("Game-Picture");
-    const menu = document.getElementById("Menu");
-
     if (menu_open) {
         menu_open = false;
-        game_picture.classList.remove("hide");
-        menu.classList.add("hide");
+        EVENTS[EVENT_NAMES.HOME_PAGE].loadEvent();
     } else {
         menu_open = true;
-        game_picture.classList.add("hide");
-        menu.classList.remove("hide");
+        EVENTS[EVENT_NAMES.MAIN_MENU].loadEvent();
     }
 }   
 
+function useDropDownOption() {
+    const drop_down = document.getElementById("Event-select");
+    Option.useOptionByID(drop_down.value);
+}
+
 document.getElementById("Menu-button").addEventListener("click", toggleMenu);
+document.getElementById("Confirm-button").addEventListener("click", useDropDownOption);

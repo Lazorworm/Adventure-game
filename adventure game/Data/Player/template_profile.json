@@ -1,13 +1,8 @@
 {
     "name": "",
     "level": 1,
-    "points": 0,
-    "stats": {
-        "Health": 100,
-        "Intelligence": 0,
-        "Constitution": 0,
-        "Charisma": 0,
-        "Dexterity": 0,
-        "MEAT": 0
-    }
+    "points": 100,
+    "stats": [0, 0, 0, 0, 0, 100],
+    "current_event": {},
+    "menu_open": false
 }
