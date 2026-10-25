@@ -1,31 +1,33 @@
-import {deleteProfile, profile, saveProfile} from "./Serialization.js";
-import {STAT_TYPES, statUp, statDown, statReset} from "./Player.js";
+import {OPTION_LOGIC, EVENT_PROCESS_LOGIC} from "./EventLogic.js";
+import { profile } from "./Serialization.js";
 
-// Collection of Tags for each Event ID
-export const EVENT_NAMES = {}
+// Map of all Options loaded where key is a name string and value is an option
+export const OPTIONS = new Map();
 
-// Array of all Options created
-export const OPTIONS = [];
-
-// Array of all Events created
-export const EVENTS = [];
+// Map of all Options loaded where key is a name string and value is an event
+export const EVENTS = new Map();
 
 // A drop down Option object, usually associated with a specific event
 export class Option {
     static numOptions = 0;
 
-    constructor(name) {
-        this.id = Option.numOptions;
+    constructor(logic_id, name) {
+        this.logic_id = logic_id;
         this.name = name;
-        OPTIONS[Option.numOptions] = this;
+        OPTIONS.set(name, this);
         Option.numOptions++;
+
+        this.activate = OPTION_LOGIC.get(logic_id);
     }
 
     // Call the activate method for an option, given it's id
-    static useOptionByID(id) {
-        id = Number(id);
-        if (typeof id == "number") {
-            OPTIONS[id].activate();
+    static useOptionByName(name) {
+        for (const name in OPTIONS.keys()) {
+            console.log(name);
+        }
+
+        if (OPTIONS.has(name)) {
+            OPTIONS.get(name).activate();
         }
     }
 
@@ -49,13 +51,45 @@ export class Event {
     // relating to the event
     // image is the image that "Game-Picture"'s source will be set to
     // during the event
-    constructor(options, html, image) {
-        this.id = Event.numEvents;
+    constructor(name, logic_id, is_menu_event, options, html, image_path) {
+        this.name = name;
+        this.logic_id = logic_id;
+        this.is_menu_event = is_menu_event;
         this.options = options;
         this.html = html;
-        this.image = image;
-        EVENTS[Event.numEvents] = this;
+        this.image_path = image_path;
+        EVENTS.set(name, this);
         Event.numEvents++;
+
+        this.additionalPreprocess = EVENT_PROCESS_LOGIC.get(logic_id);
+    }
+
+    // function for loading a event from a json
+    static async retrieveEvent(path) {
+        const name = path.split("/")[3].split(".")[0];
+        if (EVENTS.has(name)) {
+            return EVENTS.get(name);
+        }
+
+        const event_file = await fetch(path);
+        const pseudo_event = await event_file.json();
+
+        const options = [];
+        for (let i = 0; i < pseudo_event.options.length; i++) {
+            const pseudo_option = pseudo_event.options[i];
+            const option = new Option(pseudo_option.logic_id, pseudo_option.name);
+            options[i] = option;
+        }
+
+        var event;
+        if (pseudo_event.html_path) {
+            const html_file = await fetch(pseudo_event.html_path);
+            event = new Event(pseudo_event.name, pseudo_event.logic_id, pseudo_event.is_menu_event, options, await html_file.text(), pseudo_event.image_path);
+        } else {
+            event = new Event(pseudo_event.name, pseudo_event.logic_id, pseudo_event.is_menu_event, options, null, pseudo_event.image_path);
+        }
+        
+        return event;
     }
 
     // This should be overloaded when extra preparation of the even past
@@ -69,6 +103,8 @@ export class Event {
     // All before calling additonalPreprocess in case of necessary secondary
     // loading steps
     loadEvent() {
+        profile.current_event_name = this.name;
+
         const old_inserts = document.getElementsByClassName("Event-Insert");
         for (const insert of old_inserts) {
             insert.remove();
@@ -78,14 +114,14 @@ export class Event {
         option_select.innerHTML = "";
         if (this.options) {
             for (const option of this.options) {
-                option_select.innerHTML += '<option value="' + option.id + '">' + option.name + '</option>';
+                option_select.innerHTML += '<option value="' + option.name + '">' + option.name + '</option>';
             }
         }
 
         const display = document.getElementById("Game-Picture");
-        if (this.image) {
+        if (this.image_path) {
             display.classList.remove("hide");
-            display.src = this.image;
+            display.src = this.image_path;
         } else {
             display.classList.add("hide");
         }
@@ -97,46 +133,4 @@ export class Event {
 
         this.additionalPreprocess();
     }
-}
-
-// Place all Event and Option initialization here
-
-// ALWAYS ADD A EVENT_NAMES ENTRY WITH THE NAME OF A NEW EVENT
-// AND A VALUE OF THE CURRENT NUMBER OF EVENTS, BEFORE INITIALIZING
-// A NEW EVENT!
-
-EVENT_NAMES.HOME_PAGE = Event.numEvents;
-const HOME_PAGE = new Event(null, null, "../Images/placeholder.png");
-
-EVENT_NAMES.MAIN_MENU= Event.numEvents;
-const Fun = new Option("Fun");
-Fun.activate = function() {
-    console.log("SO MUCH FUN! YAAAAAAAY!!!");
-}
-const Save = new Option("Save Data");
-Save.activate = function() {
-    saveProfile();
-}
-const Delete = new Option("Delete Data");
-Delete.activate = function() {
-    deleteProfile();
-}
-const MAIN_MENU_HTML = await fetch("../HTML/Main_Menu.html");
-const MAIN_MENU = new Event([Fun, Save, Delete], await MAIN_MENU_HTML.text(), null);
-MAIN_MENU.additionalPreprocess = function() {
-    document.getElementById("Level-tag").textContent = `Level: ${profile.level}`;
-    document.getElementById("Name-tag").textContent = `Name: ${profile.name}`;
-    document.getElementById("Points-tag").textContent = `Available Points: ${profile.points}`;
-
-    const stat_names = Object.keys(STAT_TYPES);
-    const stat_indices = Object.values(STAT_TYPES);
-    for (let i = 0; i < 5; i++) {
-        const stat_name = stat_names[i];
-        const stat_index = stat_indices[i];
-        document.getElementById(stat_name + "-tag").textContent = stat_name + `: ${profile.stats[i]}`;
-        document.getElementById(stat_name + "-up-button").addEventListener("click", function() {statUp(stat_index, 1)});
-        document.getElementById(stat_name + "-down-button").addEventListener("click", function() {statDown(stat_index, 1)});
-    }
-
-    document.getElementById("Reset-button").addEventListener("click", statReset);
 }

@@ -1,4 +1,15 @@
+import {Event, Option} from "./Events.js";
+
 export var profile = null;
+
+export async function loadGame() {
+    await Event.retrieveEvent("../Data/Events/Home_Page.json");
+    await Event.retrieveEvent("../Data/Events/Main_Menu.json");
+    await loadProfile();
+
+    await Event.retrieveEvent("../Data/Events/" + profile.current_menu_event_name + ".json");
+    (await Event.retrieveEvent("../Data/Events/" + profile.current_game_event_name + ".json")).loadEvent();
+}
 
 export async function loadProfile() {
     if (localStorage.getItem("Profile") !== null) {

@@ -1,0 +1,17 @@
+{
+    "name": "Home_Page",
+    "logic_id": "NONE",
+    "is_menu_event": false,
+    "options": [
+        {
+            "logic_id": "TEST",
+            "name": "test1"
+        },
+        {
+            "logic_id": "TEST",
+            "name": "test2"
+        }
+    ],
+    "html_path": null,
+    "image_path": "../Images/placeholder.png"
+}

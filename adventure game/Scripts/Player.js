@@ -15,8 +15,6 @@ export function statUp(type, num_up) {
     const stat_tag = document.getElementById(stat_name + "-tag");
     const points_tag = document.getElementById("Points-tag");
 
-    console.log(type + " " + num_up);
-
     if (profile.points >= num_up) {
         profile.points -= num_up;
         profile.stats[type] += num_up;

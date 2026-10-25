@@ -1,0 +1,21 @@
+{
+    "name": "Main_Menu",
+    "logic_id": "MAIN_MENU",
+    "is_menu_event": true,
+    "options": [
+        {
+            "logic_id": "FUN",
+            "name": "Fun"
+        },
+        {
+            "logic_id": "SAVE_DATA",
+            "name": "Save"
+        },
+        {
+            "logic_id": "DELETE_DATA",
+            "name": "Delete"
+        }
+    ],
+    "html_path": "../HTML/Main_Menu.html",
+    "image_path": null
+}

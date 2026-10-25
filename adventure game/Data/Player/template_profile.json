@@ -3,6 +3,6 @@
     "level": 1,
     "points": 100,
     "stats": [0, 0, 0, 0, 0, 100],
-    "current_event": {},
-    "menu_open": false
+    "current_menu_event_name": "Main_Menu",
+    "current_game_event_name": "Home_Page"
 }
